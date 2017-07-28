@@ -1,0 +1,5 @@
+export const ADD = 'VOL4_FORM_ADD'
+export const RESET = 'VOL4_FORM_RESET'
+export const SUBMIT = 'VOL4_FORM_SUBMIT'
+export const SUCCESS = 'VOL4_FORM_SUCCESS'
+export const ERROR = 'VOL4_FORM_ERROR'
