@@ -1,8 +1,19 @@
 {
   "name": "vol4-form",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "description": "A form for React JS",
   "main": "./lib/index.js",
   "module": "es/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vol4tim/vol4-form.git"
+  },
+  "keywords": [
+    "react",
+    "redux",
+    "form",
+    "forms"
+  ],
   "scripts": {
     "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir es",
