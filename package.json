@@ -1,6 +1,6 @@
 {
   "name": "vol4-form",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A form for React JS",
   "main": "./lib/index.js",
   "module": "es/index.js",
