@@ -9,22 +9,24 @@ const fieldDefault = {
   value: '',
   error: ''
 };
-const fieldsGen = (rows) => {
+const fieldsGen = (rows, path = '') => {
   const fields = {}
   _.forEach(rows, (field, index) => {
     let name = index
+    let pathName = (path === '') ? name : path + '[' + name + ']'
     if (_.has(field, 'name')) {
       name = field.name
+      pathName = (path === '') ? name : path + '.' + name
     }
     if (_.isArray(field)) {
-      fields[name] = fieldsGen(field)
+      fields[name] = fieldsGen(field, pathName)
     } else if (_.has(field, 'fields')) {
-      fields[name] = fieldsGen(field.fields)
+      fields[name] = fieldsGen(field.fields, pathName)
     } else {
       fields[name] = {
         ...fieldDefault,
         ...field,
-        name
+        name: pathName
       }
     }
   })
@@ -61,6 +63,8 @@ class Form extends Component {
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.addField = this.addField.bind(this);
+    this.removeField = this.removeField.bind(this);
   }
   componentWillMount() {
     this.props.formAdd();
@@ -111,6 +115,44 @@ class Form extends Component {
     }
     event.preventDefault();
   }
+  addField(path, data) {
+    let fields = {
+      ...this.state.fields
+    }
+    let parent = fields;
+    if (_.has(fields, path)) {
+      parent = _.get(fields, path);
+    }
+    let name = _.size(parent)
+    let pathName = (path === '') ? name : path + '[' + name + ']'
+    if (_.has(data, 'name')) {
+      name = data.name
+      pathName = (path === '') ? name : path + '.' + name
+    }
+    const field = {
+      ...fieldDefault,
+      ...data,
+      name: pathName
+    }
+    fields = _.set(fields, path + '[' + name + ']', field)
+    this.setState({ fields });
+  }
+  removeField(path) {
+    let fields = {
+      ...this.state.fields
+    }
+    if (_.has(fields, path)) {
+      const field = _.get(fields, path);
+      if (_.isArray(field)) {
+        fields = _.set(fields, path, [])
+      } else if (_.has(field, 'type')) {
+        fields = _.omit(fields, path)
+      } else {
+        fields = _.set(fields, path, {})
+      }
+      this.setState({ fields });
+    }
+  }
   render() {
     return cloneElement(
       this.props.children,
@@ -118,6 +160,8 @@ class Form extends Component {
         ...this.props,
         handleChange: this.handleChange,
         handleSubmit: this.handleSubmit,
+        addField: this.addField,
+        removeField: this.removeField,
         fields: this.state.fields
       }
     )
