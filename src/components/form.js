@@ -4,18 +4,58 @@ import { bindActionCreators } from 'redux'
 import _ from 'lodash'
 import { add, reset, success, error } from '../module/actions';
 
+const fieldDefault = {
+  type: 'text',
+  value: '',
+  error: ''
+};
+const fieldsGen = (rows) => {
+  const fields = {}
+  _.forEach(rows, (field, index) => {
+    let name = index
+    if (_.has(field, 'name')) {
+      name = field.name
+    }
+    if (_.isArray(field)) {
+      fields[name] = fieldsGen(field)
+    } else if (_.has(field, 'fields')) {
+      fields[name] = fieldsGen(field.fields)
+    } else {
+      fields[name] = {
+        ...fieldDefault,
+        ...field,
+        name
+      }
+    }
+  })
+  if (_.isArray(rows[0])) {
+    return _.toArray(fields)
+  }
+  return fields
+}
+const getData = (rows) => {
+  const fields = {}
+  _.forEach(rows, (field, index) => {
+    let name = index
+    if (_.has(field, 'name')) {
+      name = field.name
+    }
+    if (!_.has(field, 'value')) {
+      fields[name] = getData(field)
+    } else {
+      fields[name] = field.value
+    }
+  })
+  if (_.isArray(rows[0])) {
+    return _.toArray(fields)
+  }
+  return fields
+}
+
 class Form extends Component {
   constructor(props) {
     super(props);
-    const fields = _.mapValues(props.fields, (field) => {
-      if (!_.has(field, 'error')) {
-        field['error'] = ''
-      }
-      if (!_.has(field, 'type')) {
-        field['type'] = 'text'
-      }
-      return field
-    })
+    const fields = fieldsGen(props.fields)
     this.state = {
       fields
     };
@@ -27,7 +67,7 @@ class Form extends Component {
   }
   componentWillReceiveProps(next) {
     if (next.form.reset === true) {
-      this.setState({ fields: this.props.fields });
+      this.setState({ fields: fieldsGen(this.props.fields) });
       this.props.formResetEnd();
     }
   }
@@ -36,31 +76,27 @@ class Form extends Component {
     this.props.formSuccess('');
   }
   setErrors(errors) {
-    const fields = {
+    let fields = {
       ...this.state.fields
     }
-    _.forEach(errors, (msg, field) => {
-      if (_.has(fields, field)) {
-        fields[field].error = msg;
-      }
+    _.forEach(errors, (msg, path) => {
+      const field = _.get(fields, path);
+      field.error = msg
+      fields = _.set(fields, path, field)
     })
     this.setState({ fields });
   }
   handleChange(event) {
-    const fields = {
-      ...this.state.fields,
-      [event.target.name]: {
-        ...this.state.fields[event.target.name],
-        value: event.target.value,
-        error: ''
-      }
-    }
-    this.setState({ fields });
+    const fields = { ...this.state.fields }
+    const field = _.get(fields, event.target.name);
+    field.value = event.target.value
+    field.error = ''
+    this.setState({ fields: _.set(fields, event.target.name, field) });
   }
   handleSubmit(event) {
     this.props.formError('');
     this.props.formSuccess('');
-    const data = _.mapValues(this.state.fields, 'value')
+    const data = getData(this.state.fields);
     let valid = true
     if (_.has(this.props, 'onValidate')) {
       const errors = this.props.onValidate(data);
