@@ -7,8 +7,17 @@ import { add, reset, success, error } from '../module/actions';
 class Form extends Component {
   constructor(props) {
     super(props);
+    const fields = _.mapValues(props.fields, (field) => {
+      if (!_.has(field, 'error')) {
+        field['error'] = ''
+      }
+      if (!_.has(field, 'type')) {
+        field['type'] = 'text'
+      }
+      return field
+    })
     this.state = {
-      fields: props.fields
+      fields
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -21,6 +30,10 @@ class Form extends Component {
       this.setState({ fields: this.props.fields });
       this.props.formResetEnd();
     }
+  }
+  componentWillUnmount() {
+    this.props.formError('');
+    this.props.formSuccess('');
   }
   setErrors(errors) {
     const fields = {
