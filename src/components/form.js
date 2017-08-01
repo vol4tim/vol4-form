@@ -6,6 +6,8 @@ import { add, reset, success, error } from '../module/actions';
 
 const fieldDefault = {
   type: 'text',
+  label: '',
+  placeholder: '',
   value: '',
   error: ''
 };
@@ -40,7 +42,7 @@ const getData = (rows) => {
   _.forEach(rows, (field, index) => {
     let name = index
     if (_.has(field, 'name')) {
-      name = field.name
+      name = _.toPath(field.name).pop()
     }
     if (!_.has(field, 'value')) {
       fields[name] = getData(field)
